@@ -38,16 +38,13 @@ body, html {
   padding: 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   background-color: var(--bg-main);
-  background: radial-gradient(circle at top left, var(--bg-gradient-start) 0%, var(--bg-main) 100%);
-  background-attachment: fixed;
   color: var(--text-main);
   -webkit-font-smoothing: antialiased;
-  height: 100vh;
-  width: 100vw;
-  overflow: hidden; /* ABSOLUTELY NO WINDOW SCROLLING */
+  min-height: 100vh;
+  overflow-x: hidden;
   max-width: 100%;
 }
-#root { height: 100%; width: 100%; }
+#root { min-height: 100vh; }
 
 * {
   box-sizing: border-box;
@@ -76,23 +73,23 @@ body, html {
 .app-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
   width: 100%;
 }
 
 .app-navbar {
-  flex-shrink: 0;
+  position: sticky;
+  top: 0;
   z-index: 50;
   background: var(--bg-header);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--glass-border);
-  padding: 16px 24px;
+  padding: 16px 32px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.02);
 }
 
 .app-content {
@@ -100,44 +97,37 @@ body, html {
   flex-direction: column;
   flex: 1;
   width: 100%;
-  max-width: 1600px;
+  max-width: 1400px;
   margin: 0 auto;
-  overflow-y: auto; /* On mobile, the whole column scrolls */
+  padding: 24px;
 }
 
 .app-sidebar {
-  padding: 24px;
   width: 100%;
   flex-shrink: 0;
-  overflow-y: visible;
+  padding-bottom: 24px;
 }
 
 .app-main {
-  padding: 24px;
   flex: 1;
   width: 100%;
-  overflow-y: visible;
 }
 
 @media (min-width: 1024px) {
   .app-content {
     flex-direction: row;
-    gap: 32px;
-    padding: 0 24px;
-    overflow-y: hidden; /* Desktop is fixed */
+    align-items: flex-start;
+    gap: 40px;
+    padding: 32px;
   }
   .app-sidebar {
-    width: 420px;
-    padding: 24px 0;
-    height: 100%;
-    overflow-y: auto; /* Independent scroll */
+    width: 380px;
+    position: sticky;
+    top: 100px;
+    padding-bottom: 0;
   }
-  /* Remove sticky logic, sidebar itself scrolls */
   .app-main {
-    padding: 24px 0;
-    height: 100%;
     min-width: 0; 
-    overflow-y: auto; /* Independent scroll */
   }
 }
 
