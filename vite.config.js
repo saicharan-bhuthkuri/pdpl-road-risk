@@ -3,13 +3,10 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  server: {
-    port: 3000,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-      }
-    }
+  // No proxy needed — fully frontend-only, backend deprecated
+  build: {
+    outDir: 'dist',
+    // Increase chunk size limit for the large road_network.json
+    chunkSizeWarningLimit: 1000,
   }
 })

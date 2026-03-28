@@ -1,63 +1,49 @@
 import { useState, useEffect, useRef } from 'react'
-import axios from 'axios'
+import networkData from './data/road_network.json'
+import { computeRoutes, fetchWeather } from './router.js'
 
-const API = 'http://localhost:8000'
+// ── helpers ────────────────────────────────────────────────────
+const riskColor = s => s >= 0.65 ? '#e53935' : s >= 0.35 ? '#fb8c00' : '#43a047'
+const riskBg    = s => s >= 0.65 ? '#fdecea' : s >= 0.35 ? '#fff3e0' : '#e8f5e9'
+const riskLabel = s => s >= 0.65 ? 'High'    : s >= 0.35 ? 'Medium'  : 'Low'
 
-// Colour helpers
-const riskColor = (score) => {
-  if (score >= 0.65) return '#e53935'
-  if (score >= 0.35) return '#fb8c00'
-  return '#43a047'
-}
-const riskBg = (score) => {
-  if (score >= 0.65) return '#fdecea'
-  if (score >= 0.35) return '#fff3e0'
-  return '#e8f5e9'
-}
-const riskLabel = (score) => {
-  if (score >= 0.65) return 'High'
-  if (score >= 0.35) return 'Medium'
-  return 'Low'
-}
-
-// Static location chips
+// ── location chips ─────────────────────────────────────────────
 const CHIPS = [
   { label: '🏘 Peddapalli Town',        val: 'Peddapalli Town' },
-  { label: '⛏ Godavarikhani',           val: 'Godavarikhani' },
-  { label: '🏭 Ramagundam',             val: 'Ramagundam' },
-  { label: '🌿 Manthani',               val: 'Manthani' },
-  { label: '🏘 Sultanabad',             val: 'Sultanabad' },
-  { label: '🌾 Kamanpur',               val: 'Kamanpur' },
-  { label: '🌾 Mutharam',               val: 'Mutharam' },
-  { label: '🌾 Ramagiri',               val: 'Ramagiri' },
-  { label: '🏘 Dharmapuri',             val: 'Dharmaram' },
-  { label: '🌳 Kataram',                val: 'Kataram' },
-  { label: '🌳 Odela',                  val: 'Odela' },
-  { label: '🌾 Julapally',              val: 'Julapalli' },
-  { label: '🌾 Gangadhara',             val: 'Eligaid' },
-  { label: '🏘 Metpally',               val: 'Palakurthy' },
-  { label: '🌾 Boinpally',              val: 'Mutharam' },
-  { label: '🌳 Konaraopet',             val: 'Odela' },
-  { label: '🌳 Vempally',               val: 'Ramagiri' },
-  { label: '🌳 Eligaid',                val: 'Eligaid' },
-  { label: '🌾 Palimela',               val: 'Palakurthy' },
-  { label: '🏥 Peddapalli Hospital',    val: 'Peddapalli Hospital' },
-  { label: '🚌 Peddapalli Bus Stand',   val: 'Peddapalli Bus Stand' },
+  { label: '⛏ Godavarikhani',          val: 'Godavarikhani' },
+  { label: '🏭 Ramagundam',            val: 'Ramagundam' },
+  { label: '🌿 Manthani',              val: 'Manthani' },
+  { label: '🏘 Sultanabad',            val: 'Sultanabad' },
+  { label: '🌾 Kamanpur',              val: 'Kamanpur' },
+  { label: '🌾 Mutharam',              val: 'Mutharam' },
+  { label: '🌾 Ramagiri',              val: 'Ramagiri' },
+  { label: '🏘 Dharmapuri',            val: 'Dharmaram' },
+  { label: '🌳 Kataram',               val: 'Kataram' },
+  { label: '🌳 Odela',                 val: 'Odela' },
+  { label: '🌾 Julapally',             val: 'Julapalli' },
+  { label: '🌾 Gangadhara',            val: 'Gangadhara' },
+  { label: '🏘 Metpally',              val: 'Palimela' },
+  { label: '🌾 Boinpally',             val: 'Boinpally' },
+  { label: '🌳 Konaraopet',            val: 'Konaraopet' },
+  { label: '🌳 Vempally',              val: 'Vempally' },
+  { label: '🌳 Eligaid',               val: 'Eligaid' },
+  { label: '🌾 Palimela',              val: 'Palimela' },
+  { label: '🏥 Peddapalli Hospital',   val: 'Peddapalli Hospital' },
+  { label: '🚌 Peddapalli Bus Stand',  val: 'Peddapalli Bus Stand' },
   { label: '🚂 Peddapalli Railway Station', val: 'Peddapalli Railway Station' },
-  { label: '🏛 Peddapalli Collectorate',val: 'Peddapalli Collectorate' },
-  { label: '🚌 Godavarikhani Bus Stand',val: 'Godavarikhani Bus Stand' },
-  { label: '🏭 NTPC Colony',            val: 'NTPC Colony' },
-  { label: '⚡ Ramagundam Power Plant', val: 'Ramagundam Power Plant' },
-  { label: '🌉 Godavari Bridge',        val: 'Godavari Bridge' },
-  { label: '💧 Sabbitham Waterfall',    val: 'Sabbitham Waterfall' },
-  { label: '⚠ SH7 Kamanpur Junction',  val: 'SH7 Kamanpur Junction' },
-  { label: '🏗 Karimnagar Road Bypass', val: 'Karimnagar Road Bypass' },
-  { label: '🏗 Jagtial Road',           val: 'Jagtial Road' },
+  { label: '🏛 Peddapalli Collectorate', val: 'Peddapalli Collectorate' },
+  { label: '🚌 Godavarikhani Bus Stand', val: 'Godavarikhani Bus Stand' },
+  { label: '🏭 NTPC Colony',           val: 'NTPC Colony' },
+  { label: '⚡ Ramagundam Power Plant',val: 'Ramagundam Power Plant' },
+  { label: '🌉 Godavari Bridge',       val: 'Godavari Bridge' },
+  { label: '💧 Sabbitham Waterfall',   val: 'Sabbitham Waterfall' },
+  { label: '⚠ SH7 Kamanpur Junction', val: 'SH7 Kamanpur Junction' },
+  { label: '🏗 Karimnagar Road Bypass',val: 'Karimnagar Road Bypass' },
+  { label: '🏗 Jagtial Road',          val: 'Jagtial Road' },
   { label: '⚠ Manthani Bypass',        val: 'Manthani Bypass' },
 ]
 
-// Subcomponents
-
+// ── sub-components ─────────────────────────────────────────────
 function WeatherBadge({ weather }) {
   if (!weather) return null
   const icons = { clear: '☀️', rainy: '🌧️', foggy: '🌫️', cloudy: '☁️' }
@@ -112,6 +98,9 @@ function RouteCard({ route, isRecommended, isAvoid }) {
   const [expanded, setExpanded] = useState(false)
   const borderColor = isAvoid ? '#e5393530' : isRecommended ? '#43a04730' : '#e0e0e0'
   const bg = isAvoid ? '#fff5f5' : isRecommended ? '#f0fdf4' : '#fff'
+  const km = route.total_km ?? route.km ?? 0
+  const mins = route.est_minutes ?? route.mins ?? 0
+  const nSegs = route.segments?.length ?? route.n_segments ?? 0
 
   return (
     <div style={{
@@ -145,10 +134,10 @@ function RouteCard({ route, isRecommended, isAvoid }) {
       </div>
 
       <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-        <StatCard icon="📏" label="Distance" value={`${route.km} km`} />
-        <StatCard icon="⏱" label="Est. Time" value={`${route.mins} min`} />
+        <StatCard icon="📏" label="Distance" value={`${km} km`} />
+        <StatCard icon="⏱" label="Est. Time" value={`${mins} min`} />
         <StatCard icon="🎯" label="Risk Score" value={route.avg_risk?.toFixed(3)} />
-        <StatCard icon="📍" label="Segments" value={`${route.n_segments} segs`} />
+        <StatCard icon="📍" label="Segments" value={`${nSegs} segs`} />
       </div>
 
       <button
@@ -158,7 +147,7 @@ function RouteCard({ route, isRecommended, isAvoid }) {
           color: '#1565c0', fontSize: 12, cursor: 'pointer', fontWeight: 500
         }}
       >
-        {expanded ? '▲ Hide' : '▼ Show all'} {route.segments?.length} road segments
+        {expanded ? '▲ Hide' : '▼ Show all'} {nSegs} road segments
       </button>
 
       {expanded && (
@@ -183,7 +172,8 @@ function RouteCard({ route, isRecommended, isAvoid }) {
   )
 }
 
-function SegmentFactorCard({ seg }) {
+function SegmentFactorCard({ seg, weather }) {
+  const wc = weather?.weather_condition || 'clear'
   return (
     <div style={{
       border: `1.5px solid ${riskColor(seg.risk_score)}20`,
@@ -199,16 +189,16 @@ function SegmentFactorCard({ seg }) {
         </span>
       </div>
       <div style={{ fontSize: 11, color: '#888', marginBottom: 8 }}>
-        {seg.weather} · day · medium traffic
+        {seg.mandal} · {wc} · {seg.road_type}
       </div>
-      {seg.factors && seg.factors.length > 0 && (
+      {seg.factors?.length > 0 && (
         <>
           <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 4, color: '#333' }}>
-            Contributing factors (ML detected):
+            Contributing factors:
           </div>
           {seg.factors.map((f, i) => (
             <div key={i} style={{ fontSize: 12, color: '#444', paddingLeft: 8, lineHeight: 1.6 }}>
-              {f}
+              • {f}
             </div>
           ))}
         </>
@@ -217,7 +207,7 @@ function SegmentFactorCard({ seg }) {
   )
 }
 
-// Main App
+// ── Main App ───────────────────────────────────────────────────
 export default function App() {
   const [source, setSource]       = useState('')
   const [dest, setDest]           = useState('')
@@ -226,26 +216,12 @@ export default function App() {
   const [result, setResult]       = useState(null)
   const [error, setError]         = useState(null)
   const [activeTab, setActiveTab] = useState('recommendation')
-  const [modelReady, setModelReady] = useState(false)
   const [activeField, setActiveField] = useState(null)
-  const sourceRef = useRef(null)
-  const destRef   = useRef(null)
+  const [weather, setWeather]     = useState(null)
 
-  // Poll model readiness
+  // Load live weather on mount (non-blocking)
   useEffect(() => {
-    const check = async () => {
-      try {
-        const res = await axios.get(`${API}/api/status`)
-        if (res.data.ready) {
-          setModelReady(true)
-        } else {
-          setTimeout(check, 2000)
-        }
-      } catch {
-        setTimeout(check, 3000)
-      }
-    }
-    check()
+    fetchWeather('now').then(setWeather).catch(() => {})
   }, [])
 
   const handleChipClick = (val) => {
@@ -268,14 +244,11 @@ export default function App() {
     setResult(null)
     setActiveTab('recommendation')
     try {
-      const res = await axios.post(`${API}/api/route`, {
-        source: source.trim(),
-        destination: dest.trim(),
-        time: time || 'now'
-      })
-      setResult(res.data)
+      const data = await computeRoutes(networkData, source.trim(), dest.trim(), time || 'now')
+      setResult(data)
+      setWeather(data.weather)
     } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to compute route. Check that the backend is running.')
+      setError(err.message || 'Failed to compute route.')
     } finally {
       setLoading(false)
     }
@@ -287,6 +260,9 @@ export default function App() {
     { id: 'risk',           label: '📊 Risk' },
     { id: 'explain',        label: '⚠ Explain' },
   ]
+
+  const wc = weather?.weather_condition
+  const weatherIcons = { clear: '☀️', rainy: '🌧️', foggy: '🌫️', cloudy: '☁️' }
 
   return (
     <div style={{ minHeight: '100vh', background: '#f4f6f8' }}>
@@ -304,26 +280,21 @@ export default function App() {
           Full-Stack App · ML Risk Scoring · Dijkstra Graph Routing · 550 Segments
         </p>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
-          {['Random Forest', 'Gradient Boosting', 'Dijkstra Routing', '14-Factor Model'].map(t => (
+          {['Dijkstra Routing', 'Risk Scoring', '550 Segments', '14-Factor Model'].map(t => (
             <span key={t} style={{
               background: '#ffffff15', border: '1px solid #ffffff25',
               borderRadius: 20, padding: '3px 12px', fontSize: 12, color: '#cbd5e1'
             }}>{t}</span>
           ))}
         </div>
-        {!modelReady && (
-          <div style={{ marginTop: 12, color: '#fbbf24', fontSize: 12 }}>
-            ⏳ Training ML models… please wait
-          </div>
-        )}
-        {modelReady && (
-          <div style={{ marginTop: 12, color: '#86efac', fontSize: 12 }}>
-            ✅ ML Model Ready
-          </div>
-        )}
+        <div style={{ marginTop: 12, color: '#86efac', fontSize: 12 }}>
+          {wc
+            ? `${weatherIcons[wc] || '🌤'} Live weather: ${wc.toUpperCase()} · ${weather.temperature_c}°C — ✅ Ready`
+            : '✅ Route Engine Ready — No backend required'}
+        </div>
       </div>
 
-      {/* Journey Planner */}
+      {/* Journey planner */}
       <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 16px' }}>
         <div style={{
           background: '#fff', borderRadius: 20, padding: 20,
@@ -339,7 +310,7 @@ export default function App() {
               📍 Your Current Location
             </label>
             <input
-              ref={sourceRef}
+              id="source-input"
               value={source}
               onChange={e => setSource(e.target.value)}
               onFocus={() => setActiveField('source')}
@@ -358,11 +329,11 @@ export default function App() {
               🏁 Destination
             </label>
             <input
-              ref={destRef}
+              id="dest-input"
               value={dest}
               onChange={e => setDest(e.target.value)}
               onFocus={() => setActiveField('dest')}
-              placeholder="e.g. Ramagundam, NTPC Colony, Peddapalli"
+              placeholder="e.g. Ramagundam, NTPC Colony, Julapally"
               style={{
                 width: '100%', padding: '12px 14px', borderRadius: 12,
                 border: `1.5px solid ${activeField === 'dest' ? '#1565c0' : '#e0e0e0'}`,
@@ -377,9 +348,10 @@ export default function App() {
               ⏱ Departure Time
             </label>
             <input
+              id="time-input"
               value={time}
               onChange={e => setTime(e.target.value)}
-              placeholder="8:30am · 14:00 · 10:30pm · now"
+              placeholder="8:30 · 14:00 · 22:00 · now"
               style={{
                 width: '100%', padding: '12px 14px', borderRadius: 12,
                 border: '1.5px solid #e0e0e0', fontSize: 14, boxSizing: 'border-box'
@@ -389,13 +361,14 @@ export default function App() {
 
           {/* Submit */}
           <button
+            id="submit-btn"
             onClick={handleSubmit}
-            disabled={loading || !modelReady}
+            disabled={loading}
             style={{
               width: '100%', padding: '14px', borderRadius: 14,
-              background: modelReady ? 'linear-gradient(90deg, #1565c0, #1976d2)' : '#94a3b8',
+              background: loading ? '#94a3b8' : 'linear-gradient(90deg, #1565c0, #1976d2)',
               color: '#fff', fontWeight: 700, fontSize: 16,
-              border: 'none', cursor: modelReady ? 'pointer' : 'not-allowed',
+              border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
               boxShadow: '0 4px 14px rgba(21,101,192,0.3)', transition: '0.2s'
             }}
           >
@@ -441,7 +414,7 @@ export default function App() {
         {result && (
           <div style={{ marginTop: 16, marginBottom: 32 }}>
 
-            {/* Journey summary header */}
+            {/* Journey header */}
             <div style={{
               background: 'linear-gradient(135deg, #0d1b2a, #1b2a4a)',
               borderRadius: 20, padding: 20, color: '#fff', marginBottom: 12
@@ -452,15 +425,19 @@ export default function App() {
               <h2 style={{ fontWeight: 800, fontSize: 18, marginBottom: 8 }}>
                 🏘 {result.source} → 🏭 {result.destination}
               </h2>
-              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: 12, color: '#cbd5e1' }}>
-                <span>🕐 Now</span>
-                <span>🌙 {result.time_label}</span>
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: 12, color: '#cbd5e1', alignItems: 'center' }}>
+                <span>🕐 {result.time_label}</span>
                 <span>📏 ~{result.direct_km} km direct</span>
                 <WeatherBadge weather={result.weather} />
               </div>
               <div style={{ marginTop: 8, fontSize: 12, color: '#86efac' }}>
                 🗺 {result.routes?.length} routes computed
               </div>
+              {result.recommendation?.risk_cut_pct > 0 && (
+                <div style={{ marginTop: 4, fontSize: 12, color: '#fbbf24' }}>
+                  ✨ Best route is {result.recommendation.risk_cut_pct}% safer than worst
+                </div>
+              )}
             </div>
 
             {/* Tabs */}
@@ -468,7 +445,6 @@ export default function App() {
               background: '#fff', borderRadius: 16,
               boxShadow: '0 2px 12px rgba(0,0,0,0.08)', overflow: 'hidden'
             }}>
-              {/* Tab bar */}
               <div style={{
                 display: 'flex', borderBottom: '1px solid #f0f0f0',
                 overflowX: 'auto', padding: '0 4px'
@@ -491,7 +467,6 @@ export default function App() {
                 ))}
               </div>
 
-              {/* Tab content */}
               <div style={{ padding: 16 }}>
 
                 {/* RECOMMENDATION TAB */}
@@ -500,35 +475,28 @@ export default function App() {
                     <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 14 }}>
                       ML Recommendation
                     </h3>
-
-                    {result.recommendation.best_route && (
-                      <RouteCard
-                        route={result.recommendation.best_route}
-                        isRecommended={true}
-                      />
-                    )}
-
-                    {result.recommendation.avoid_route && (
+                    <RouteCard
+                      route={result.recommendation.route}
+                      isRecommended={true}
+                    />
+                    {result.routes?.length > 1 && (
                       <div style={{ marginTop: 8 }}>
                         <div style={{ fontSize: 12, fontWeight: 600, color: '#e53935', marginBottom: 8 }}>
                           Route to Avoid:
                         </div>
                         <RouteCard
-                          route={result.recommendation.avoid_route}
+                          route={result.routes[result.routes.length - 1]}
                           isAvoid={true}
                         />
                       </div>
                     )}
-
-                    {result.recommendation.summary && (
-                      <div style={{
-                        background: '#f0fdf4', border: '1px solid #bbf7d0',
-                        borderRadius: 12, padding: '12px 14px', fontSize: 13, color: '#166534',
-                        marginTop: 8, lineHeight: 1.6
-                      }}>
-                        💡 {result.recommendation.summary}
-                      </div>
-                    )}
+                    <div style={{
+                      background: '#f0fdf4', border: '1px solid #bbf7d0',
+                      borderRadius: 12, padding: '12px 14px', fontSize: 13, color: '#166534',
+                      marginTop: 8, lineHeight: 1.6
+                    }}>
+                      💡 {result.recommendation.why}
+                    </div>
                   </div>
                 )}
 
@@ -542,8 +510,8 @@ export default function App() {
                       <RouteCard
                         key={i}
                         route={route}
-                        isRecommended={route.name === result.recommendation?.best_route?.name}
-                        isAvoid={route.name === result.recommendation?.avoid_route?.name}
+                        isRecommended={i === 0}
+                        isAvoid={i === result.routes.length - 1 && result.routes.length > 1}
                       />
                     ))}
                   </div>
@@ -553,11 +521,11 @@ export default function App() {
                 {activeTab === 'risk' && (
                   <div>
                     <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 14 }}>
-                      Segment Risk Breakdown
+                      Top Risk Segments
                     </h3>
-                    {result.segment_risks?.length > 0 ? (
-                      result.segment_risks.map((seg, i) => (
-                        <SegmentFactorCard key={i} seg={seg} />
+                    {result.top_risk_segments?.length > 0 ? (
+                      result.top_risk_segments.map((seg, i) => (
+                        <SegmentFactorCard key={i} seg={seg} weather={result.weather} />
                       ))
                     ) : (
                       <div style={{ color: '#888', fontSize: 13 }}>
@@ -573,21 +541,34 @@ export default function App() {
                     <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 14 }}>
                       Risk Factors Explained
                     </h3>
-                    {result.explanations?.length > 0 ? (
-                      result.explanations.map((ex, i) => (
+                    {result.recommendation?.route?.segments
+                      ?.filter(s => s.risk_score >= 0.35)
+                      ?.slice(0, 6)
+                      ?.map((seg, i) => (
                         <div key={i} style={{
-                          background: '#fff8e1', border: '1px solid #ffe082',
-                          borderRadius: 12, padding: '12px 14px', marginBottom: 10,
-                          fontSize: 13, color: '#5d4037', lineHeight: 1.6
+                          background: riskBg(seg.risk_score),
+                          border: `1px solid ${riskColor(seg.risk_score)}30`,
+                          borderRadius: 12, padding: '12px 14px', marginBottom: 10, fontSize: 13
                         }}>
-                          {ex}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, marginBottom: 6 }}>
+                            <RiskDot score={seg.risk_score} size={8} />
+                            {seg.name}
+                            <span style={{ color: riskColor(seg.risk_score), marginLeft: 'auto' }}>
+                              {(seg.risk_score * 100).toFixed(0)}% risk
+                            </span>
+                          </div>
+                          {seg.factors?.map((f, j) => (
+                            <div key={j} style={{ color: '#444', paddingLeft: 14, lineHeight: 1.6 }}>
+                              • {f}
+                            </div>
+                          ))}
                         </div>
-                      ))
-                    ) : (
-                      <div style={{ color: '#888', fontSize: 13 }}>
-                        No explanation data available.
-                      </div>
-                    )}
+                      )) ?? (
+                        <div style={{ color: '#888', fontSize: 13 }}>
+                          No high-risk segments on the recommended route. ✅
+                        </div>
+                      )
+                    }
                   </div>
                 )}
 
