@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import networkData from './data/road_network.json'
 import { computeRoutes, fetchWeather } from './router.js'
 
@@ -8,7 +8,6 @@ const getRiskBg = s => s >= 0.65 ? 'var(--risk-high-glow)' : s >= 0.35 ? 'var(--
 const getRiskLabel = s => s >= 0.65 ? 'High Risk' : s >= 0.35 ? 'Moderate' : 'Safest'
 const getRibbonClass = s => s >= 0.65 ? 'ribbon-red' : s >= 0.35 ? 'ribbon-orange' : 'ribbon-green'
 
-// ── location chips ─────────────────────────────────────────────
 const CHIPS = [
   { label: '🏘 Peddapalli', val: 'Peddapalli Town' },
   { label: '🏭 Godavarikhani', val: 'Godavarikhani' },
@@ -22,41 +21,40 @@ const CHIPS = [
   { label: '🌉 Godavari Bridge', val: 'Godavari Bridge' },
   { label: '💧 Sabbitham Falls', val: 'Sabbitham Waterfall' },
   { label: '⚠ SH7 Kamanpur', val: 'SH7 Kamanpur Junction' },
-  { label: '🏗 Karimnagar Bypass', val: 'Karimnagar Road Bypass' },
-  { label: '🏗 Jagtial Road', val: 'Jagtial Road' },
 ]
 
-// ── sub-components ─────────────────────────────────────────────
-function WeatherBadge({ weather }) {
-  if (!weather) return null
-  const icons = { clear: '☀️', rainy: '🌧️', foggy: '🌫️', cloudy: '☁️' }
-  const wc = weather.weather_condition
-  return (
-    <div style={{
-      display: 'inline-flex', alignItems: 'center', gap: 6,
-      background: 'rgba(255,255,255,0.08)', borderRadius: '20px',
-      padding: '4px 12px', fontSize: '12px', fontWeight: 600,
-      border: '1px solid rgba(255,255,255,0.1)'
-    }}>
-      <span style={{ fontSize: '15px' }}>{icons[wc] || '🌤'}</span>
-      {wc?.toUpperCase()} · {weather.temperature_c}°C
-    </div>
-  )
-}
+// ── Shared UI Components ───────────────────────────────────────
 
 function RiskBadge({ score }) {
   return (
     <div style={{
-      display: 'inline-flex', alignItems: 'center', gap: '6px',
+      display: 'inline-flex', alignItems: 'center', gap: '8px',
       background: getRiskBg(score), color: getRiskColor(score),
-      borderRadius: '20px', padding: '4px 12px', fontSize: '12px', fontWeight: 800,
-      border: `1px solid ${getRiskColor(score)}40`, boxShadow: `0 4px 12px ${getRiskBg(score)}`
+      borderRadius: '24px', padding: '6px 14px', fontSize: '13px', fontWeight: 800,
+      border: `1px solid ${getRiskColor(score)}40`, boxShadow: `0 4px 16px ${getRiskBg(score)}`
     }}>
       <span style={{ 
         width: 8, height: 8, borderRadius: '50%', background: getRiskColor(score),
         boxShadow: `0 0 8px ${getRiskColor(score)}`
       }} />
       {getRiskLabel(score)}
+    </div>
+  )
+}
+
+function WeatherBadge({ weather }) {
+  if (!weather) return null
+  const icons = { clear: '☀️', rainy: '🌧️', foggy: '🌫️', cloudy: '☁️' }
+  const wc = weather.weather_condition
+  return (
+    <div style={{
+      display: 'inline-flex', alignItems: 'center', gap: 8,
+      background: 'rgba(255,255,255,0.08)', borderRadius: '24px',
+      padding: '4px 14px', fontSize: '13px', fontWeight: 600,
+      border: '1px solid rgba(255,255,255,0.1)'
+    }}>
+      <span style={{ fontSize: '18px' }}>{icons[wc] || '🌤'}</span>
+      {wc?.toUpperCase()} · {weather.temperature_c}°C
     </div>
   )
 }
@@ -73,76 +71,78 @@ function RouteCard({ route, isRecommended, isAvoid }) {
       <div className={`ribbon-glow ${rbn}`}></div>
       
       {isRecommended && (
-        <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ background: 'var(--risk-low-glow)', color: 'var(--risk-low)', fontSize: 11, fontWeight: 800, padding: '4px 8px', borderRadius: 8, border: '1px solid var(--risk-low)' }}>
+        <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ background: 'var(--risk-low-glow)', color: 'var(--risk-low)', fontSize: 12, fontWeight: 800, padding: '4px 10px', borderRadius: 8, border: '1px solid var(--risk-low)' }}>
             ✨ RECOMMENDED ROUTE
           </span>
         </div>
       )}
       
       {isAvoid && (
-        <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ background: 'var(--risk-high-glow)', color: 'var(--risk-high)', fontSize: 11, fontWeight: 800, padding: '4px 8px', borderRadius: 8, border: '1px solid var(--risk-high)' }}>
+        <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ background: 'var(--risk-high-glow)', color: 'var(--risk-high)', fontSize: 12, fontWeight: 800, padding: '4px 10px', borderRadius: 8, border: '1px solid var(--risk-high)' }}>
             🚨 AVOID (HIGHEST RISK)
           </span>
         </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
-          <h3 style={{ margin: '0 0 6px', fontSize: 18, color: '#fff', fontWeight: 700 }}>
+          <h3 style={{ margin: '0 0 8px', fontSize: 22, color: '#fff', fontWeight: 800 }}>
             {route.name}
           </h3>
-          <p style={{ margin: 0, fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6, paddingRight: 16 }}>
-            {route.segments?.slice(0, 4).map(s => s.name).join(' → ')}
-            {route.segments?.length > 4 ? ` → ...` : ''}
+          <p style={{ margin: 0, fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.6, paddingRight: 20 }}>
+            {route.segments?.slice(0, 5).map(s => s.name).join(' → ')}
+            {route.segments?.length > 5 ? ` → ... (${nSegs} paths)` : ''}
           </p>
         </div>
-        <RiskBadge score={route.avg_risk} />
+        <div style={{ marginLeft: 16 }}>
+          <RiskBadge score={route.avg_risk} />
+        </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+      <div className="dashboard-stats-grid">
         <div className="route-stat-box">
-          <span style={{ fontSize: 20 }}>📏</span>
+          <span style={{ fontSize: 24, marginBottom: 4 }}>📏</span>
           <div className="route-stat-val">{km} km</div>
           <div className="route-stat-label">Distance</div>
         </div>
         <div className="route-stat-box">
-          <span style={{ fontSize: 20 }}>⏱</span>
+          <span style={{ fontSize: 24, marginBottom: 4 }}>⏱</span>
           <div className="route-stat-val">{mins} m</div>
-          <div className="route-stat-label">Time</div>
+          <div className="route-stat-label">Est. Time</div>
         </div>
         <div className="route-stat-box">
-          <span style={{ fontSize: 20 }}>🎯</span>
+          <span style={{ fontSize: 24, marginBottom: 4 }}>🎯</span>
           <div className="route-stat-val">{route.avg_risk?.toFixed(3)}</div>
-          <div className="route-stat-label">Risk</div>
+          <div className="route-stat-label">Avg Risk</div>
         </div>
       </div>
 
       <button
         onClick={() => setExpanded(!expanded)}
         style={{
-          marginTop: 16, width: '100%', background: 'rgba(255,255,255,0.05)',
-          border: '1px solid rgba(255,255,255,0.1)', color: '#fff',
-          padding: '8px', borderRadius: 8, fontSize: 12, cursor: 'pointer',
+          marginTop: 20, width: '100%', background: 'rgba(255,255,255,0.04)',
+          border: '1px solid rgba(255,255,255,0.08)', color: 'var(--text-main)',
+          padding: '12px', borderRadius: 12, fontSize: 13, cursor: 'pointer',
           fontWeight: 600, transition: '0.2s'
         }}
-        onMouseEnter={e => e.target.style.background = 'rgba(255,255,255,0.1)'}
-        onMouseLeave={e => e.target.style.background = 'rgba(255,255,255,0.05)'}
+        onMouseEnter={e => { e.target.style.background = 'rgba(255,255,255,0.1)'; e.target.style.borderColor = 'rgba(255,255,255,0.15)' }}
+        onMouseLeave={e => { e.target.style.background = 'rgba(255,255,255,0.04)'; e.target.style.borderColor = 'rgba(255,255,255,0.08)' }}
       >
-        {expanded ? '▲ Hide Segments' : `▼ View ${nSegs} Segments`}
+        {expanded ? '▲ Collapse Road Segments Tracking' : `▼ View All ${nSegs} Segments Breakdown`}
       </button>
 
       {expanded && (
-        <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div className="animate-fade-in" style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
           {route.segments?.map((s, i) => (
             <div key={i} style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: '8px 12px', background: 'rgba(0,0,0,0.2)', borderRadius: 8, fontSize: 13,
-              borderLeft: `3px solid ${getRiskColor(s.risk_score)}`
+              padding: '12px 16px', background: 'rgba(0,0,0,0.3)', borderRadius: 12, fontSize: 14,
+              borderLeft: `4px solid ${getRiskColor(s.risk_score)}`, border: '1px solid rgba(255,255,255,0.05)'
             }}>
               <span style={{ color: '#e2e8f0', fontWeight: 500 }}>{s.name}</span>
-              <span style={{ color: getRiskColor(s.risk_score), fontWeight: 700 }}>
+              <span style={{ color: getRiskColor(s.risk_score), fontWeight: 800 }}>
                 {(s.risk_score * 100).toFixed(0)}%
               </span>
             </div>
@@ -157,25 +157,25 @@ function SegmentFactorCard({ seg, weather }) {
   const wc = weather?.weather_condition || 'clear'
   return (
     <div className="route-card animate-slide-up" style={{
-      borderLeft: `4px solid ${getRiskColor(seg.risk_score)}`
+      borderLeft: `5px solid ${getRiskColor(seg.risk_score)}`
     }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-        <h4 style={{ margin: 0, fontSize: 16, color: '#fff' }}>{seg.name}</h4>
-        <span style={{ color: getRiskColor(seg.risk_score), fontWeight: 800, fontSize: 18 }}>
-          {(seg.risk_score * 100).toFixed(0)}%
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <h4 style={{ margin: 0, fontSize: 18, color: '#fff', fontWeight: 800 }}>{seg.name}</h4>
+        <span style={{ background: getRiskBg(seg.risk_score), color: getRiskColor(seg.risk_score), padding: '6px 12px', borderRadius: 12, fontWeight: 800, fontSize: 16 }}>
+          {(seg.risk_score * 100).toFixed(0)}% RISK
         </span>
       </div>
-      <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+      <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 600 }}>
         {seg.mandal} · {wc} · {seg.road_type}
       </div>
       {seg.factors?.length > 0 && (
-        <div style={{ background: 'rgba(0,0,0,0.2)', padding: 12, borderRadius: 8 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 6, textTransform: 'uppercase' }}>
-            Flagged ML Risk Factors
+        <div style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.05)', padding: 16, borderRadius: 12 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-muted)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+            Automated Threat Analysis
           </div>
           {seg.factors.map((f, i) => (
-            <div key={i} style={{ fontSize: 13, color: '#cbd5e1', paddingLeft: 4, lineHeight: 1.6, display: 'flex', gap: 6 }}>
-              <span style={{ color: 'var(--accent-blue)' }}>•</span> {f}
+            <div key={i} style={{ fontSize: 14, color: '#e2e8f0', paddingLeft: 6, lineHeight: 1.6, display: 'flex', gap: 8, marginBottom: 6 }}>
+              <span style={{ color: 'var(--risk-high)' }}>•</span> {f}
             </div>
           ))}
         </div>
@@ -184,7 +184,8 @@ function SegmentFactorCard({ seg, weather }) {
   )
 }
 
-// ── Main App ───────────────────────────────────────────────────
+// ── Application Layout ─────────────────────────────────────────
+
 export default function App() {
   const [source, setSource] = useState('')
   const [dest, setDest] = useState('')
@@ -196,7 +197,6 @@ export default function App() {
   const [activeField, setActiveField] = useState(null)
   const [weather, setWeather] = useState(null)
 
-  // Load live weather on mount (non-blocking)
   useEffect(() => {
     fetchWeather('now').then(setWeather).catch(() => { })
   }, [])
@@ -213,7 +213,7 @@ export default function App() {
 
   const handleSubmit = async () => {
     if (!source.trim() || !dest.trim()) {
-      setError('Please enter both source and destination.')
+      setError('Please provide origin and destination.')
       return
     }
     setLoading(true)
@@ -225,243 +225,271 @@ export default function App() {
       setResult(data)
       setWeather(data.weather)
     } catch (err) {
-      setError(err.message || 'Failed to compute route.')
+      setError(err.message || 'Routing engine error. Try valid locations.')
     } finally {
       setLoading(false)
     }
   }
 
   const TABS = [
-    { id: 'recommendation', label: '✅ Recommendation' },
-    { id: 'routes', label: '🗺 Routes' },
-    { id: 'risk', label: '📊 Risk' },
-    { id: 'explain', label: '⚠ Explain' },
+    { id: 'recommendation', label: '✅ AI Route' },
+    { id: 'routes', label: '🗺 Alternatives' },
+    { id: 'risk', label: '📊 Threat Map' },
+    { id: 'explain', label: '⚠ Insights' },
   ]
 
-  const wc = weather?.weather_condition
-
   return (
-    <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px 16px', paddingBottom: 64 }}>
+    <div className="app-container">
       
-      {/* Hero Header */}
-      <div style={{ textAlign: 'center', marginBottom: 40, animation: 'floatApp 6s infinite ease-in-out' }}>
-        <div style={{ fontSize: 48, marginBottom: 8 }}>🛣️</div>
-        <h1 className="header-title text-gradient">Peddapalli Road Risk</h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: 14, maxWidth: 400, margin: '0 auto 16px', lineHeight: 1.5 }}>
-          Predictive machine learning routing for safe travel across 550+ road segments in Peddapalli District.
-        </p>
+      {/* Dynamic TopBar */}
+      <nav className="app-navbar">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ fontSize: 24 }}>🛣️</div>
+          <div style={{ fontFamily: 'Inter', fontWeight: 800, fontSize: 18, letterSpacing: -0.5, color: '#fff' }}>
+            SafeRoute <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>| Peddapalli</span>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          {weather && <WeatherBadge weather={weather} />}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--risk-low-glow)', color: 'var(--risk-low)', padding: '6px 14px', borderRadius: 20, fontSize: 13, fontWeight: 700, border: '1px solid var(--risk-low)' }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--risk-low)', display: 'inline-block' }}></span>
+            API Ready
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Split Interface */}
+      <div className="app-content">
         
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
-          {['Dijkstra Routing', 'ML Scoring', '14-Factor Model'].map(t => (
-            <span key={t} style={{
-              background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.2)',
-              borderRadius: 20, padding: '4px 12px', fontSize: 11, color: '#93c5fd', fontWeight: 600, textTransform: 'uppercase'
-            }}>{t}</span>
-          ))}
-        </div>
-      </div>
-
-      {/* Planner Card */}
-      <div className="glass-panel" style={{ marginBottom: 32 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-          <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: '#fff' }}>Plan Journey</h2>
-          {wc && <WeatherBadge weather={weather} />}
-        </div>
-
-        <div className="input-group">
-          <label className="input-label">📍 Source Location</label>
-          <input
-            className="glass-input"
-            value={source}
-            onChange={e => setSource(e.target.value)}
-            onFocus={() => setActiveField('source')}
-            placeholder="e.g. Peddapalli Town, Godavarikhani"
-          />
-        </div>
-
-        <div className="input-group">
-          <label className="input-label">🏁 Destination</label>
-          <input
-            className="glass-input"
-            value={dest}
-            onChange={e => setDest(e.target.value)}
-            onFocus={() => setActiveField('dest')}
-            placeholder="e.g. Ramagundam, NTPC Colony"
-          />
-        </div>
-
-        <div className="input-group">
-          <label className="input-label">⏱ Departure Time</label>
-          <input
-            className="glass-input"
-            value={time}
-            onChange={e => setTime(e.target.value)}
-            placeholder="8:30 · 14:00 · 22:00 · now"
-          />
-        </div>
-
-        <button
-          className="btn-primary"
-          onClick={handleSubmit}
-          disabled={loading}
-          style={{ animation: loading ? 'pulseGlow 1.5s infinite' : 'none' }}
-        >
-          {loading ? '⏳ Computing Safest Routes...' : '🔍 Analyze & Get Routes'}
-        </button>
-
-        {error && (
-          <div style={{
-            marginTop: 16, background: 'var(--risk-high-glow)', color: '#fca5a5',
-            borderRadius: 12, padding: '12px 16px', fontSize: 13, border: '1px solid var(--risk-high)'
-          }}>
-            ❌ {error}
-          </div>
-        )}
-
-        {/* Quick Location Chips */}
-        <div style={{ marginTop: 24 }}>
-          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12, fontWeight: 600, textTransform: 'uppercase' }}>
-            Quick Select
-          </p>
-          <div className="chip-container">
-            {CHIPS.map(chip => (
-              <button key={chip.label} className="chip" onClick={() => handleChipClick(chip.val)}>
-                {chip.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Results Dashboard */}
-      {result && (
-        <div className="glass-panel animate-slide-up" style={{ padding: '0', background: 'rgba(20, 25, 40, 0.6)' }}>
-          
-          {/* Header Summary */}
-          <div style={{ padding: 24, borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-            <div style={{ fontSize: 12, color: 'var(--accent-blue)', fontWeight: 700, marginBottom: 8, textTransform: 'uppercase' }}>
-              Route Analysis Complete
-            </div>
-            <h2 style={{ fontSize: 20, fontWeight: 800, color: '#fff', margin: '0 0 12px' }}>
-              {result.source} <span style={{ color: 'var(--text-muted)' }}>→</span> {result.destination}
-            </h2>
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: 13, color: 'var(--text-muted)', fontWeight: 500 }}>
-              <span style={{ background: 'rgba(255,255,255,0.1)', padding: '4px 10px', borderRadius: 12 }}>🗺 {result.routes?.length} routes found</span>
-              <span style={{ background: 'rgba(255,255,255,0.1)', padding: '4px 10px', borderRadius: 12 }}>📏 ~{result.direct_km}km direct</span>
-            </div>
-          </div>
-
-          <div style={{ padding: '24px 20px' }}>
-            {/* Custom Segmented Control */}
-            <div className="segmented-control">
-              {TABS.map(tab => (
-                <div
-                  key={tab.id}
-                  className={`segment-tab ${activeTab === tab.id ? 'active' : ''}`}
-                  onClick={() => setActiveTab(tab.id)}
-                >
-                  {tab.label}
-                </div>
-              ))}
-            </div>
-
-            {/* TAB CONTENT */}
-            
-            {/* RECOMMENDATION TAB */}
-            {activeTab === 'recommendation' && result.recommendation && (
-              <div className="animate-slide-up">
-                <RouteCard route={result.recommendation.route} isRecommended={true} />
-                
-                {result.recommendation.risk_cut_pct > 0 && (
-                  <div style={{
-                    background: 'var(--risk-low-glow)', border: '1px solid var(--risk-low)',
-                    borderRadius: 16, padding: '16px', fontSize: 14, color: '#a7f3d0',
-                    marginTop: 16, lineHeight: 1.6, display: 'flex', gap: 12, alignItems: 'center'
-                  }}>
-                    <div style={{ fontSize: 24 }}>🛡️</div>
-                    <div>{result.recommendation.why}</div>
-                  </div>
-                )}
-
-                {result.routes?.length > 1 && (
-                  <div style={{ marginTop: 24 }}>
-                    <h4 style={{ color: 'var(--text-muted)', fontSize: 12, textTransform: 'uppercase', marginBottom: 12 }}>Comparison: Route to Avoid</h4>
-                    <RouteCard route={result.routes[result.routes.length - 1]} isAvoid={true} />
-                  </div>
-                )}
+        {/* Left Panel: Journey Planner */}
+        <div className="app-sidebar">
+          <div className="app-sidebar-sticky">
+            <div className="glass-panel" style={{ padding: 32 }}>
+              <div style={{ marginBottom: 32 }}>
+                <h2 style={{ fontSize: 24, fontWeight: 800, margin: '0 0 8px', color: '#fff' }}>Journey Config</h2>
+                <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: 14, lineHeight: 1.5 }}>
+                  Enter parameters to let the machine learning router evaluate 550+ segments for safety.
+                </p>
               </div>
-            )}
 
-            {/* ROUTES TAB */}
-            {activeTab === 'routes' && (
-              <div className="animate-slide-up">
-                {result.routes?.map((route, i) => (
-                  <RouteCard
-                    key={i} route={route}
-                    isRecommended={i === 0}
-                    isAvoid={i === result.routes.length - 1 && result.routes.length > 1}
-                  />
+              <div className="input-group">
+                <label className="input-label">📍 Origin</label>
+                <input
+                  className="glass-input"
+                  value={source}
+                  onChange={e => setSource(e.target.value)}
+                  onFocus={() => setActiveField('source')}
+                  placeholder="e.g. Peddapalli Town"
+                />
+              </div>
+
+              <div className="input-group">
+                <label className="input-label">🏁 Destination</label>
+                <input
+                  className="glass-input"
+                  value={dest}
+                  onChange={e => setDest(e.target.value)}
+                  onFocus={() => setActiveField('dest')}
+                  placeholder="e.g. Ramagundam"
+                />
+              </div>
+
+              <div className="input-group" style={{ marginBottom: 32 }}>
+                <label className="input-label">⏱ Depart At</label>
+                <input
+                  className="glass-input"
+                  value={time}
+                  onChange={e => setTime(e.target.value)}
+                  placeholder="8:30 · 14:00 · now"
+                />
+              </div>
+
+              <button
+                className="btn-primary"
+                onClick={handleSubmit}
+                disabled={loading}
+                style={{ animation: loading ? 'pulseGlow 1.5s infinite' : 'none' }}
+              >
+                {loading ? '⏳ Running ML Inference...' : 'Generate Safe Route'}
+              </button>
+
+              {error && (
+                <div className="animate-fade-in" style={{
+                  marginTop: 20, background: 'var(--risk-high-glow)', color: '#fca5a5',
+                  borderRadius: 12, padding: '16px', fontSize: 14, border: '1px solid var(--risk-high)'
+                }}>
+                  🚨 {error}
+                </div>
+              )}
+
+              {/* Quick Select Tool */}
+              <div style={{ marginTop: 32, borderTop: '1px solid var(--glass-border)', paddingTop: 24 }}>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                  Suggested Nodes
+                </p>
+                <div className="chip-container">
+                  {CHIPS.map(chip => (
+                    <button key={chip.label} className="chip" onClick={() => handleChipClick(chip.val)}>
+                      {chip.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Panel: Insights & Dashboard */}
+        <div className="app-main">
+          
+          {!result && !loading && (
+            <div className="glass-panel animate-fade-in" style={{ height: '100%', minHeight: '600px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 40, border: '1px dashed rgba(255,255,255,0.1)', background: 'transparent' }}>
+              <div style={{ fontSize: 64, marginBottom: 24, opacity: 0.8 }}>📡</div>
+              <h2 className="text-gradient" style={{ fontSize: 32, fontWeight: 800, marginBottom: 16, maxWidth: 400 }}>System Awaiting Telemetry Data</h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: 16, maxWidth: 480, lineHeight: 1.6 }}>
+                The AI predictive engine uses 14 variable features including live weather, topological complexity, and accident density arrays to map the absolute safest trajectory.
+              </p>
+            </div>
+          )}
+
+          {loading && (
+            <div className="glass-panel animate-fade-in" style={{ height: '100%', minHeight: '600px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: 48, height: 48, borderRadius: '50%', border: '4px solid rgba(59, 130, 246, 0.2)', borderTopColor: '#3b82f6', animation: 'spin 1s linear infinite', marginBottom: 24 }}></div>
+              <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+              <h3 style={{ color: '#fff', fontSize: 20, marginBottom: 8 }}>Computing Matrices...</h3>
+              <p style={{ color: 'var(--text-muted)' }}>Evaluating risk on graph edges</p>
+            </div>
+          )}
+
+          {result && (
+            <div className="animate-slide-up">
+              
+              {/* Dashboard Result Header */}
+              <div className="glass-panel" style={{ marginBottom: 24, padding: '32px 40px', background: 'rgba(20, 25, 40, 0.6)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 20 }}>
+                  <div>
+                    <div style={{ fontSize: 13, color: 'var(--accent-blue)', fontWeight: 800, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 }}>
+                      Route Analysis Complete
+                    </div>
+                    <h2 style={{ fontSize: 32, fontWeight: 800, color: '#fff', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: 16 }}>
+                      {result.source} 
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="3" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg> 
+                      {result.destination}
+                    </h2>
+                    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', fontSize: 13, color: 'var(--text-muted)', fontWeight: 600 }}>
+                      <span style={{ background: 'rgba(255,255,255,0.08)', padding: '6px 14px', borderRadius: 20, border: '1px solid rgba(255,255,255,0.1)' }}>🗺 Evaluated {result.routes?.length} paths</span>
+                      <span style={{ background: 'rgba(255,255,255,0.08)', padding: '6px 14px', borderRadius: 20, border: '1px solid rgba(255,255,255,0.1)' }}>📏 ~{result.direct_km}km direct flight</span>
+                    </div>
+                  </div>
+                  
+                  {result.recommendation?.risk_cut_pct > 0 && (
+                    <div style={{ background: 'var(--risk-low-glow)', border: '1px solid var(--risk-low)', borderRadius: 16, padding: '16px 20px', textAlign: 'center' }}>
+                      <div style={{ fontSize: 32, fontWeight: 800, color: '#a7f3d0', marginBottom: 4 }}>{result.recommendation.risk_cut_pct}%</div>
+                      <div style={{ fontSize: 12, color: 'var(--risk-low)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: 0.5 }}>Safer than worst</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Tabs Integration */}
+              <div className="segmented-control glass-panel" style={{ padding: 8, marginBottom: 24 }}>
+                {TABS.map(tab => (
+                  <div key={tab.id} className={`segment-tab ${activeTab === tab.id ? 'active' : ''}`} onClick={() => setActiveTab(tab.id)}>
+                    {tab.label}
+                  </div>
                 ))}
               </div>
-            )}
 
-            {/* RISK TAB */}
-            {activeTab === 'risk' && (
-              <div className="animate-slide-up">
-                <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 16 }}>
-                  Showing segments with elevated risk profiles across all computed routes.
-                </p>
-                {result.top_risk_segments?.length > 0 ? (
-                  result.top_risk_segments.map((seg, i) => (
-                    <SegmentFactorCard key={i} seg={seg} weather={result.weather} />
-                  ))
-                ) : (
-                  <div style={{ color: '#888', fontSize: 13, textAlign: 'center', padding: 20 }}>
-                    No extreme risk segments detected.
+              {/* DYNAMIC TAB OUTLET */}
+              <div className="glass-panel" style={{ minHeight: 400, padding: 32 }}>
+                
+                {activeTab === 'recommendation' && result.recommendation && (
+                  <div className="animate-fade-in">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+                      <h3 style={{ margin: 0, fontSize: 20, color: '#fff', fontWeight: 800 }}>Safest Generated Trajectory</h3>
+                    </div>
+                    
+                    <RouteCard route={result.recommendation.route} isRecommended={true} />
+                    
+                    {result.recommendation.why && (
+                      <div style={{
+                        background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.2)',
+                        borderRadius: 16, padding: '20px', fontSize: 15, color: '#bfdbfe',
+                        marginTop: 20, lineHeight: 1.6, display: 'flex', gap: 16, alignItems: 'flex-start'
+                      }}>
+                        <div style={{ fontSize: 24 }}>🧠</div>
+                        <div><strong style={{ color: '#fff' }}>AI Reasoning:</strong> {result.recommendation.why}</div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {activeTab === 'routes' && (
+                  <div className="animate-fade-in">
+                    <h3 style={{ margin: '0 0 24px', fontSize: 20, color: '#fff', fontWeight: 800 }}>Comparative Routing Maps</h3>
+                    {result.routes?.map((route, i) => (
+                      <RouteCard key={i} route={route} isRecommended={i === 0} isAvoid={i === result.routes.length - 1 && result.routes.length > 1} />
+                    ))}
+                  </div>
+                )}
+
+                {activeTab === 'risk' && (
+                  <div className="animate-fade-in">
+                    <div style={{ marginBottom: 24 }}>
+                      <h3 style={{ margin: '0 0 8px', fontSize: 20, color: '#fff', fontWeight: 800 }}>Topology Threat Scan</h3>
+                      <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: 14 }}>Global scan of elevated risk zones crossing any evaluated paths.</p>
+                    </div>
+                    {result.top_risk_segments?.length > 0 ? (
+                      result.top_risk_segments.map((seg, i) => (
+                        <SegmentFactorCard key={i} seg={seg} weather={result.weather} />
+                      ))
+                    ) : (
+                      <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
+                        No acute risk segments discovered on graph traversal.
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {activeTab === 'explain' && (
+                  <div className="animate-fade-in">
+                    <div style={{ marginBottom: 24 }}>
+                      <h3 style={{ margin: '0 0 8px', fontSize: 20, color: '#fff', fontWeight: 800 }}>Safety Audit (Recommended Route)</h3>
+                      <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: 14 }}>Deep dive into any flagged anomalies on your selected path.</p>
+                    </div>
+
+                    {result.recommendation?.route?.segments?.filter(s => s.risk_score >= 0.35)?.length > 0 ? (
+                      result.recommendation.route.segments.filter(s => s.risk_score >= 0.35).slice(0, 6).map((seg, i) => (
+                        <div key={i} style={{
+                          background: 'rgba(0,0,0,0.3)', borderLeft: `5px solid ${getRiskColor(seg.risk_score)}`,
+                          borderRadius: 12, padding: '20px', marginBottom: 16
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                            <h4 style={{ margin: 0, color: '#fff', fontSize: 16 }}>{seg.name}</h4>
+                            <span style={{ background: getRiskBg(seg.risk_score), color: getRiskColor(seg.risk_score), padding: '4px 10px', borderRadius: 12, marginLeft: 'auto', fontSize: 12, fontWeight: 800 }}>
+                              {(seg.risk_score * 100).toFixed(0)}% VOLATILITY
+                            </span>
+                          </div>
+                          {seg.factors?.map((f, j) => (
+                            <div key={j} style={{ color: '#cbd5e1', paddingLeft: 8, lineHeight: 1.6, marginBottom: 6, fontSize: 14, display: 'flex', gap: 8 }}>
+                              <span style={{ color: 'var(--accent-blue)' }}>•</span> {f}
+                            </div>
+                          ))}
+                        </div>
+                      ))
+                    ) : (
+                      <div style={{ border: '1px solid var(--risk-low)', background: 'var(--risk-low-glow)', color: 'var(--risk-low)', padding: 32, borderRadius: 16, textAlign: 'center', fontSize: 16, fontWeight: 600 }}>
+                        <div style={{ fontSize: 40, marginBottom: 16 }}>🛡️</div>
+                        All nodes on the designated optimal path have passed safety audits gracefully!
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            )}
-
-            {/* EXPLAIN TAB */}
-            {activeTab === 'explain' && (
-              <div className="animate-slide-up">
-                 <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 16 }}>
-                  Detailed factor breakdown for the <b>Safest Route</b>.
-                </p>
-                {result.recommendation?.route?.segments
-                  ?.filter(s => s.risk_score >= 0.35)
-                  ?.slice(0, 6)
-                  ?.map((seg, i) => (
-                    <div key={i} style={{
-                      background: 'rgba(0,0,0,0.3)',
-                      borderLeft: `4px solid ${getRiskColor(seg.risk_score)}`,
-                      borderRadius: 12, padding: '14px 16px', marginBottom: 12, fontSize: 13
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, marginBottom: 8, color: '#fff' }}>
-                        {seg.name}
-                        <span style={{ background: getRiskBg(seg.risk_score), color: getRiskColor(seg.risk_score), padding: '2px 8px', borderRadius: 12, marginLeft: 'auto', fontSize: 11 }}>
-                          {(seg.risk_score * 100).toFixed(0)}% risk
-                        </span>
-                      </div>
-                      {seg.factors?.map((f, j) => (
-                        <div key={j} style={{ color: '#cbd5e1', paddingLeft: 4, lineHeight: 1.6, marginBottom: 4 }}>
-                          <span style={{ color: 'var(--accent-blue)' }}>•</span> {f}
-                        </div>
-                      ))}
-                    </div>
-                  )) ?? (
-                    <div style={{ background: 'var(--risk-low-glow)', color: 'var(--risk-low)', padding: 20, borderRadius: 12, textAlign: 'center' }}>
-                      All segments on the recommended route are low risk! ✅
-                    </div>
-                  )
-                }
-              </div>
-            )}
-
-          </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   )
 }
