@@ -1,0 +1,7 @@
+# Ignore python backend items for purely static deployments
+.venv/
+__pycache__/
+peddapalli_road_risk.py
+extract_static_data.py
+backend_requirements.txt
+*.sqlite3
