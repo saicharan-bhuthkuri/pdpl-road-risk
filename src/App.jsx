@@ -4,43 +4,43 @@ import { computeRoutes, fetchWeather } from './router.js'
 
 // ── helpers ────────────────────────────────────────────────────
 const riskColor = s => s >= 0.65 ? '#e53935' : s >= 0.35 ? '#fb8c00' : '#43a047'
-const riskBg    = s => s >= 0.65 ? '#fdecea' : s >= 0.35 ? '#fff3e0' : '#e8f5e9'
-const riskLabel = s => s >= 0.65 ? 'High'    : s >= 0.35 ? 'Medium'  : 'Low'
+const riskBg = s => s >= 0.65 ? '#fdecea' : s >= 0.35 ? '#fff3e0' : '#e8f5e9'
+const riskLabel = s => s >= 0.65 ? 'High' : s >= 0.35 ? 'Medium' : 'Low'
 
 // ── location chips ─────────────────────────────────────────────
 const CHIPS = [
-  { label: '🏘 Peddapalli Town',        val: 'Peddapalli Town' },
-  { label: '⛏ Godavarikhani',          val: 'Godavarikhani' },
-  { label: '🏭 Ramagundam',            val: 'Ramagundam' },
-  { label: '🌿 Manthani',              val: 'Manthani' },
-  { label: '🏘 Sultanabad',            val: 'Sultanabad' },
-  { label: '🌾 Kamanpur',              val: 'Kamanpur' },
-  { label: '🌾 Mutharam',              val: 'Mutharam' },
-  { label: '🌾 Ramagiri',              val: 'Ramagiri' },
-  { label: '🏘 Dharmapuri',            val: 'Dharmaram' },
-  { label: '🌳 Kataram',               val: 'Kataram' },
-  { label: '🌳 Odela',                 val: 'Odela' },
-  { label: '🌾 Julapally',             val: 'Julapalli' },
-  { label: '🌾 Gangadhara',            val: 'Gangadhara' },
-  { label: '🏘 Metpally',              val: 'Palimela' },
-  { label: '🌾 Boinpally',             val: 'Boinpally' },
-  { label: '🌳 Konaraopet',            val: 'Konaraopet' },
-  { label: '🌳 Vempally',              val: 'Vempally' },
-  { label: '🌳 Eligaid',               val: 'Eligaid' },
-  { label: '🌾 Palimela',              val: 'Palimela' },
-  { label: '🏥 Peddapalli Hospital',   val: 'Peddapalli Hospital' },
-  { label: '🚌 Peddapalli Bus Stand',  val: 'Peddapalli Bus Stand' },
+  { label: '🏘 Peddapalli Town', val: 'Peddapalli Town' },
+  { label: '⛏ Godavarikhani', val: 'Godavarikhani' },
+  { label: '🏭 Ramagundam', val: 'Ramagundam' },
+  { label: '🌿 Manthani', val: 'Manthani' },
+  { label: '🏘 Sultanabad', val: 'Sultanabad' },
+  { label: '🌾 Kamanpur', val: 'Kamanpur' },
+  { label: '🌾 Mutharam', val: 'Mutharam' },
+  { label: '🌾 Ramagiri', val: 'Ramagiri' },
+  { label: '🏘 Dharmapuri', val: 'Dharmaram' },
+  { label: '🌳 Kataram', val: 'Kataram' },
+  { label: '🌳 Odela', val: 'Odela' },
+  { label: '🌾 Julapally', val: 'Julapalli' },
+  { label: '🌾 Gangadhara', val: 'Gangadhara' },
+  { label: '🏘 Metpally', val: 'Palimela' },
+  { label: '🌾 Boinpally', val: 'Boinpally' },
+  { label: '🌳 Konaraopet', val: 'Konaraopet' },
+  { label: '🌳 Vempally', val: 'Vempally' },
+  { label: '🌳 Eligaid', val: 'Eligaid' },
+  { label: '🌾 Palimela', val: 'Palimela' },
+  { label: '🏥 Peddapalli Hospital', val: 'Peddapalli Hospital' },
+  { label: '🚌 Peddapalli Bus Stand', val: 'Peddapalli Bus Stand' },
   { label: '🚂 Peddapalli Railway Station', val: 'Peddapalli Railway Station' },
   { label: '🏛 Peddapalli Collectorate', val: 'Peddapalli Collectorate' },
   { label: '🚌 Godavarikhani Bus Stand', val: 'Godavarikhani Bus Stand' },
-  { label: '🏭 NTPC Colony',           val: 'NTPC Colony' },
-  { label: '⚡ Ramagundam Power Plant',val: 'Ramagundam Power Plant' },
-  { label: '🌉 Godavari Bridge',       val: 'Godavari Bridge' },
-  { label: '💧 Sabbitham Waterfall',   val: 'Sabbitham Waterfall' },
+  { label: '🏭 NTPC Colony', val: 'NTPC Colony' },
+  { label: '⚡ Ramagundam Power Plant', val: 'Ramagundam Power Plant' },
+  { label: '🌉 Godavari Bridge', val: 'Godavari Bridge' },
+  { label: '💧 Sabbitham Waterfall', val: 'Sabbitham Waterfall' },
   { label: '⚠ SH7 Kamanpur Junction', val: 'SH7 Kamanpur Junction' },
-  { label: '🏗 Karimnagar Road Bypass',val: 'Karimnagar Road Bypass' },
-  { label: '🏗 Jagtial Road',          val: 'Jagtial Road' },
-  { label: '⚠ Manthani Bypass',        val: 'Manthani Bypass' },
+  { label: '🏗 Karimnagar Road Bypass', val: 'Karimnagar Road Bypass' },
+  { label: '🏗 Jagtial Road', val: 'Jagtial Road' },
+  { label: '⚠ Manthani Bypass', val: 'Manthani Bypass' },
 ]
 
 // ── sub-components ─────────────────────────────────────────────
@@ -209,19 +209,19 @@ function SegmentFactorCard({ seg, weather }) {
 
 // ── Main App ───────────────────────────────────────────────────
 export default function App() {
-  const [source, setSource]       = useState('')
-  const [dest, setDest]           = useState('')
-  const [time, setTime]           = useState('now')
-  const [loading, setLoading]     = useState(false)
-  const [result, setResult]       = useState(null)
-  const [error, setError]         = useState(null)
+  const [source, setSource] = useState('')
+  const [dest, setDest] = useState('')
+  const [time, setTime] = useState('now')
+  const [loading, setLoading] = useState(false)
+  const [result, setResult] = useState(null)
+  const [error, setError] = useState(null)
   const [activeTab, setActiveTab] = useState('recommendation')
   const [activeField, setActiveField] = useState(null)
-  const [weather, setWeather]     = useState(null)
+  const [weather, setWeather] = useState(null)
 
   // Load live weather on mount (non-blocking)
   useEffect(() => {
-    fetchWeather('now').then(setWeather).catch(() => {})
+    fetchWeather('now').then(setWeather).catch(() => { })
   }, [])
 
   const handleChipClick = (val) => {
@@ -256,9 +256,9 @@ export default function App() {
 
   const TABS = [
     { id: 'recommendation', label: '✅ Recommendation' },
-    { id: 'routes',         label: '🗺 Routes' },
-    { id: 'risk',           label: '📊 Risk' },
-    { id: 'explain',        label: '⚠ Explain' },
+    { id: 'routes', label: '🗺 Routes' },
+    { id: 'risk', label: '📊 Risk' },
+    { id: 'explain', label: '⚠ Explain' },
   ]
 
   const wc = weather?.weather_condition
