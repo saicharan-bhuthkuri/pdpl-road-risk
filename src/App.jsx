@@ -250,7 +250,7 @@ export default function App() {
         
         {/* Left Panel: Journey Planner */}
         <div className="app-sidebar">
-          <div className="app-sidebar-sticky">
+          <div>
             <div className="glass-panel" style={{ padding: 32 }}>
               <div style={{ marginBottom: 32 }}>
                 <h2 style={{ fontSize: 24, fontWeight: 800, margin: '0 0 8px', color: 'var(--text-main)' }}>Journey Config</h2>
@@ -330,7 +330,7 @@ export default function App() {
         <div className="app-main">
           
           {!result && !loading && (
-            <div className="glass-panel animate-fade-in" style={{ height: '100%', minHeight: '600px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyItems: 'center', textAlign: 'center', padding: 40, border: '2px dashed var(--glass-border)', background: 'transparent', justifyContent: 'center' }}>
+            <div className="glass-panel animate-fade-in" style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyItems: 'center', textAlign: 'center', padding: 40, border: '2px dashed var(--glass-border)', background: 'transparent', justifyContent: 'center' }}>
               <div style={{ fontSize: 64, marginBottom: 24, opacity: 0.9 }}>📡</div>
               <h2 className="text-gradient" style={{ fontSize: 32, fontWeight: 800, marginBottom: 16, maxWidth: 400 }}>System Awaiting Telemetry Data</h2>
               <p style={{ color: 'var(--text-muted)', fontSize: 16, maxWidth: 480, lineHeight: 1.6, fontWeight: 500 }}>
@@ -340,7 +340,7 @@ export default function App() {
           )}
 
           {loading && (
-            <div className="glass-panel animate-fade-in" style={{ height: '100%', minHeight: '600px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <div className="glass-panel animate-fade-in" style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
               <div style={{ width: 48, height: 48, borderRadius: '50%', border: '4px solid var(--accent-glow)', borderTopColor: 'var(--accent-blue)', animation: 'spin 1s linear infinite', marginBottom: 24 }}></div>
               <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
               <h3 style={{ color: 'var(--text-main)', fontSize: 20, marginBottom: 8, fontWeight: 800 }}>Computing Matrices...</h3>
