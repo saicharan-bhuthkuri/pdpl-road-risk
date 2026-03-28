@@ -358,7 +358,7 @@ export default function App() {
                     <div style={{ fontSize: 13, color: 'var(--accent-blue)', fontWeight: 800, marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 }}>
                       Route Analysis Complete
                     </div>
-                    <h2 style={{ fontSize: 28, fontWeight: 800, color: 'var(--text-main)', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: 16 }}>
+                    <h2 style={{ fontSize: 28, fontWeight: 800, color: 'var(--text-main)', margin: '0 0 16px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 16 }}>
                       {result.source} 
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="3" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg> 
                       {result.destination}
